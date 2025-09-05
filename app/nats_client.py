@@ -25,8 +25,9 @@ class NATSClient:
         if self.nc:
             await self.nc.close()
     
+    # Publish an event to NATS
     async def publish_event(self, subject: str, data: Dict[str, Any]):
-        # Publish an event to NATS
+        
         try:
             if not self.nc:
                 await self.connect()
@@ -37,8 +38,9 @@ class NATSClient:
         except Exception as e:
             logger.error(f"Failed to publish event to {subject}: {e}")
     
+    # Subscribe to events from NATS
     async def subscribe_to_events(self, subject: str, handler):
-        # Subscribe to events from NATS
+        
         try:
             if not self.nc:
                 await self.connect()
@@ -56,11 +58,11 @@ class NATSClient:
             logger.error(f"Failed to subscribe to {subject}: {e}")
 
 
-# Global NATS client instance
+
 nats_client = NATSClient()
 
 
-# Event publishing functions
+
 async def publish_server_created(server_id: str):
     """Publish server created event"""
     await nats_client.publish_event("server.created", {"server_id": server_id})

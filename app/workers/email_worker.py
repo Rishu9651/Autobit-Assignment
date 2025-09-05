@@ -64,9 +64,9 @@ EMAIL_TEMPLATE = """
 </html>
 """
 
-
+# Send an email using SMTP
 async def send_email(to_email: str, subject: str, html_content: str):
-    """Send an email using SMTP"""
+    
     if not settings.smtp_username or not settings.smtp_password:
         logger.warning("SMTP not configured, printing email to console instead")
         print(f"\n=== EMAIL TO: {to_email} ===")
@@ -102,7 +102,7 @@ async def send_email(to_email: str, subject: str, html_content: str):
 
 
 async def get_user_servers_with_usage(user_id: str, db, days: int = 7):
-    """Get user's servers with usage statistics"""
+   
     end_date = datetime.utcnow()
     start_date = end_date - timedelta(days=days)
     
@@ -144,9 +144,9 @@ async def get_user_servers_with_usage(user_id: str, db, days: int = 7):
     
     return servers
 
-
+# Calculate estimated charges for current month
 async def calculate_estimated_charges(user_id: str, db):
-    """Calculate estimated charges for current month"""
+
     now = datetime.utcnow()
     month_start = datetime(now.year, now.month, 1)
     
@@ -196,7 +196,6 @@ async def calculate_estimated_charges(user_id: str, db):
 
 
 async def get_latest_invoice_link(user_id: str, db):
-    """Get link to the latest invoice"""
     latest_invoice = await db.invoices.find_one(
         {"user_id": user_id},
         sort=[("created_at", -1)]
@@ -209,7 +208,7 @@ async def get_latest_invoice_link(user_id: str, db):
 
 
 async def send_weekly_email(user_id: str, db):
-    """Send weekly email to a user"""
+
     try:
        
         user = await db.users.find_one({"id": user_id})
@@ -253,9 +252,9 @@ async def send_weekly_email(user_id: str, db):
         logger.error(f"Error sending weekly email to user {user_id}: {e}")
         return False
 
-
+# Email worker
 async def weekly_email_worker():
-    """Background worker to send weekly emails"""
+
     logger.info("Starting weekly email worker...")
     
     await connect_to_mongo()

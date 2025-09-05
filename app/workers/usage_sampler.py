@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 
 
 async def sample_server_usage(server_id: str, container_id: str, db):
-    """Sample usage for a single server"""
     try:
     
         is_running = await docker_manager.is_container_running(container_id)
@@ -46,7 +45,6 @@ async def sample_server_usage(server_id: str, container_id: str, db):
 
 
 async def usage_sampling_loop():
-    """Main usage sampling loop"""
     logger.info("Starting usage sampling worker...")
     
     await connect_to_mongo()

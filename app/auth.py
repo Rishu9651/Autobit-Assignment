@@ -18,17 +18,14 @@ security = HTTPBearer()
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify a password against its hash"""
     return pwd_context.verify(plain_password, hashed_password)
 
 
 def get_password_hash(password: str) -> str:
-    """Hash a password"""
     return pwd_context.hash(password)
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    """Create a JWT access token"""
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
@@ -41,7 +38,6 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 
 
 def verify_token(token: str) -> TokenData:
-    """Verify and decode a JWT token"""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -64,7 +60,6 @@ async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db=Depends(get_database)
 ) -> UserInDB:
-    """Get the current authenticated user"""
     token_data = verify_token(credentials.credentials)
     
     user = await db.users.find_one({"id": token_data.user_id})
@@ -78,7 +73,6 @@ async def get_current_user(
 
 
 async def authenticate_user(email: str, password: str, db) -> Optional[UserInDB]:
-    """Authenticate a user with email and password"""
     user = await db.users.find_one({"email": email, "provider": "email"})
     if not user:
         return None
@@ -88,7 +82,6 @@ async def authenticate_user(email: str, password: str, db) -> Optional[UserInDB]
 
 
 async def get_user_by_email(email: str, db) -> Optional[UserInDB]:
-    """Get user by email"""
     user = await db.users.find_one({"email": email})
     if user:
         return UserInDB(**user)
@@ -96,14 +89,12 @@ async def get_user_by_email(email: str, db) -> Optional[UserInDB]:
 
 
 async def create_user(user_data: dict, db) -> UserInDB:
-    """Create a new user"""
     user = UserInDB(**user_data)
     await db.users.insert_one(user.dict())
     return user
 
 
 async def get_google_user_info(access_token: str) -> dict:
-    """Get user info from Google OAuth"""
     async with httpx.AsyncClient() as client:
         response = await client.get(
             "https://www.googleapis.com/oauth2/v2/userinfo",

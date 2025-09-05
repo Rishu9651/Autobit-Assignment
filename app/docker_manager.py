@@ -18,22 +18,21 @@ class DockerManager:
                 logger.info(f"Connecting to Docker at: {docker_host}")
                 self.client = docker.DockerClient(base_url=docker_host)
             else:
-                logger.info("No DOCKER_HOST specified, using default Docker connection")
+                logger.info("No DOCKER_HOST, using default Docker connection")
                 self.client = docker.from_env()
             
             # Test connection
             logger.info("Testing Docker connection...")
             self.client.ping()
-            logger.info("✅ Docker connection successful!")
+            logger.info("Docker connection successful!")
             self.available = True
         except Exception as e:
-            logger.error(f"❌ Docker connection failed: {e}")
+            logger.error(f"Docker connection failed: {e}")
             logger.warning("Running in mock mode. Containers will not be created.")
             self.client = None
             self.available = False
     
     def get_status(self) -> Dict[str, Any]:
-        """Get Docker manager status"""
         if not self.available or self.client is None:
             return {
                 "available": False,
@@ -60,7 +59,6 @@ class DockerManager:
 
 
     async def create_container(self, server: ServerInDB) -> str:
-        """Create a Docker container for a server"""
         if not self.available or self.client is None:
             logger.warning(
                 f"Docker not available, returning mock container ID for server {server.id}"
@@ -77,7 +75,7 @@ class DockerManager:
 
             image_name = server.image.lower()
 
-            # ✅ Ensure image exists locally, pull if missing
+            # Ensure image exists locally, pull if missing
             try:
                 self.client.images.get(image_name)
                 logger.info(f"Image {image_name} found locally")
@@ -94,7 +92,7 @@ class DockerManager:
                 mem_limit=memory_limit,
                 memswap_limit=memory_limit,  # Disable swap
                 detach=True,
-                # Disk size enforcement not supported -> only tracked in DB
+                
             )
 
             return container.id
@@ -106,7 +104,6 @@ class DockerManager:
 
     
     async def start_container(self, container_id: str) -> bool:
-        """Start a Docker container"""
         if not self.available or self.client is None:
             logger.warning(f"Docker not available, mock starting container {container_id}")
             return True
@@ -120,7 +117,6 @@ class DockerManager:
             return False
     
     async def stop_container(self, container_id: str) -> bool:
-        """Stop a Docker container"""
         if not self.available or self.client is None:
             logger.warning(f"Docker not available, mock stopping container {container_id}")
             return True
@@ -134,7 +130,6 @@ class DockerManager:
             return False
     
     async def delete_container(self, container_id: str) -> bool:
-        """Delete a Docker container"""
         if not self.available or self.client is None:
             logger.warning(f"Docker not available, mock deleting container {container_id}")
             return True
@@ -187,7 +182,6 @@ class DockerManager:
             return None
     
     async def update_container_resources(self, container_id: str, server: ServerInDB) -> bool:
-        """Update container resource limits (requires container restart)"""
         try:
        
             await self.stop_container(container_id)

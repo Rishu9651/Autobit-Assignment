@@ -3,7 +3,6 @@ from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.responses import RedirectResponse
 from app.models import (
     SignupRequest, LoginRequest, Token, User, UserInDB,
-    ErrorResponse, SuccessResponse
 )
 from app.auth import (
     authenticate_user, create_user, get_user_by_email,

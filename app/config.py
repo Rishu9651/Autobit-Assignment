@@ -5,12 +5,7 @@ import os
 import json
 
 class Settings(BaseSettings):
-    """Application settings"""
     
-    # model_config = {
-    #     "env_file": ".env",
-    #     "case_sensitive": False
-    # }
     
     # Database
     mongodb_url: str = "mongodb://localhost:27017"

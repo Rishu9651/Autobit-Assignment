@@ -14,24 +14,23 @@ db = Database()
 async def get_database():
     return db.database
 
-
+ #Create database connection
 async def connect_to_mongo():
-    """Create database connection"""
+   
     db.client = AsyncIOMotorClient(settings.mongodb_url)
     db.database = db.client[settings.mongodb_database]
     
     # Create indexes
     await create_indexes()
 
-
+#Close database connection
 async def close_mongo_connection():
-    """Close database connection"""
+    
     if db.client:
         db.client.close()
 
-
+# Create database indexes 
 async def create_indexes():
-    """Create database indexes for better performance"""
     # Users collection indexes
     await db.database.users.create_index("email", unique=True)
     await db.database.users.create_index("provider_id")
