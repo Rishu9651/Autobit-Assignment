@@ -8,6 +8,7 @@ from app.auth import get_current_user, UserInDB
 from app.database import get_database
 from app.docker_manager import docker_manager
 from app.nats_client import publish_server_created, publish_server_started, publish_server_stopped
+from app.config import settings
 from datetime import datetime
 import uuid
 
@@ -22,10 +23,30 @@ async def create_server(
 ):
     """Create a new server"""
 
+    # Validate resource values are positive
     if server_data.cpu_limit <= 0 or server_data.cores <= 0 or server_data.ram_gib <= 0 or server_data.disk_gib <= 0:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="All resource values must be positive"
+        )
+    
+    # Validate against maximum limits
+    if server_data.cpu_limit > settings.max_cpu_per_server:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"CPU limit cannot exceed {settings.max_cpu_per_server} cores"
+        )
+    
+    if server_data.ram_gib > settings.max_ram_per_server:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"RAM cannot exceed {settings.max_ram_per_server} GiB"
+        )
+    
+    if server_data.disk_gib > settings.max_disk_per_server:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Disk size cannot exceed {settings.max_disk_per_server} GiB"
         )
     
     server = ServerInDB(
@@ -258,12 +279,32 @@ async def update_server(
             detail="No fields to update"
         )
     
+    # Validate resource values are positive
     for field in ["cpu_limit", "cores", "ram_gib", "disk_gib"]:
         if field in update_data and update_data[field] <= 0:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"{field} must be positive"
             )
+    
+    # Validate against maximum limits
+    if "cpu_limit" in update_data and update_data["cpu_limit"] > settings.max_cpu_per_server:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"CPU limit cannot exceed {settings.max_cpu_per_server} cores"
+        )
+    
+    if "ram_gib" in update_data and update_data["ram_gib"] > settings.max_ram_per_server:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"RAM cannot exceed {settings.max_ram_per_server} GiB"
+        )
+    
+    if "disk_gib" in update_data and update_data["disk_gib"] > settings.max_disk_per_server:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Disk size cannot exceed {settings.max_disk_per_server} GiB"
+        )
     
     for field, value in update_data.items():
         setattr(server, field, value)
@@ -277,14 +318,17 @@ async def update_server(
             resource_fields = ["cpu_limit", "cores", "ram_gib", "disk_gib"]
             if any(field in update_data for field in resource_fields):
                 
-                success = await docker_manager.update_container_resources(
+                new_container_id = await docker_manager.update_container_resources(
                     server.container_id, server
                 )
-                if not success:
+                if not new_container_id:
                     raise HTTPException(
                         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                         detail="Failed to update server resources"
                     )
+                
+                # Update the server with the new container ID
+                server.container_id = new_container_id
         
 
         await db.servers.update_one(

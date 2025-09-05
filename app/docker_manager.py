@@ -181,7 +181,7 @@ class DockerManager:
             logger.error(f"Failed to get stats for container {container_id}: {e}")
             return None
     
-    async def update_container_resources(self, container_id: str, server: ServerInDB) -> bool:
+    async def update_container_resources(self, container_id: str, server: ServerInDB) -> Optional[str]:
         try:
        
             await self.stop_container(container_id)
@@ -192,11 +192,11 @@ class DockerManager:
             
             await self.start_container(new_container_id)
             
-            return True
+            return new_container_id
             
         except Exception as e:
             logger.error(f"Failed to update resources for container {container_id}: {e}")
-            return False
+            return None
     
     async def is_container_running(self, container_id: str) -> bool:
         """Check if a container is running"""
