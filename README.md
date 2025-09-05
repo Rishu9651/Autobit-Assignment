@@ -130,7 +130,7 @@ curl http://localhost:8000/billing/rates
 ## Project Structure
 
 ```
-Autobit-Internal/
+Autobit-Assignment/
 ├── app/                          # Main application code
 │   ├── main.py                  # FastAPI app entry point
 │   ├── config.py                # Configuration management
