@@ -1,0 +1,100 @@
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: autobit-mongodb
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: autobit
+    networks:
+      - autobit-network
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: autobit-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - autobit-network
+
+  nats:
+    image: nats:2.10-alpine
+    container_name: autobit-nats
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    command: ["--http_port", "8222", "--jetstream"]
+    networks:
+      - autobit-network
+
+  api:
+    build: .
+    container_name: autobit-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+    env_file:
+      - .env
+    environment:
+      - MONGODB_URL=mongodb://mongodb:27017
+      - REDIS_URL=redis://redis:6379
+      - NATS_URL=nats://nats:4222
+    depends_on:
+      - mongodb
+      - redis
+      - nats
+    networks:
+      - autobit-network
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    user: root
+
+  usage-sampler:
+    user: root
+    build: .
+    container_name: autobit-usage-sampler
+    volumes:
+      - ./:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - MONGODB_URL=mongodb://mongodb:27017
+      - REDIS_URL=redis://redis:6379
+      - NATS_URL=nats://nats:4222
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    depends_on:
+      - mongodb
+      - redis
+      - nats
+    networks:
+      - autobit-network
+    command: python -m app.workers.usage_sampler
+
+  email-worker:
+    build: .
+    container_name: autobit-email-worker
+    volumes:
+      - ./:/app
+    environment:
+      - MONGODB_URL=mongodb://mongodb:27017
+      - REDIS_URL=redis://redis:6379
+      - NATS_URL=nats://nats:4222
+    depends_on:
+      - mongodb
+      - redis
+      - nats
+    networks:
+      - autobit-network
+    command: python -m app.workers.email_worker
+
+volumes:
+  mongodb_data:
+  redis_data:
+
+networks:
+  autobit-network:
+    driver: bridge

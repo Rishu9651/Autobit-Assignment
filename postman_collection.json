@@ -1,0 +1,499 @@
+{
+  "info": {
+    "name": "AutoBit Backend API",
+    "description": "Complete API collection for AutoBit server management and billing system",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "server_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "invoice_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Sign Up",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"testpassword123\",\n  \"name\": \"Test User\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/signup",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "signup"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('jwt_token', response.access_token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"testpassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('jwt_token', response.access_token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/me",
+              "host": ["{{base_url}}"],
+              "path": ["me"]
+            }
+          }
+        },
+        {
+          "name": "Google OAuth Callback",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/oauth/google/callback?code=test_code&state=test_state",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "oauth", "google", "callback"],
+              "query": [
+                {
+                  "key": "code",
+                  "value": "test_code"
+                },
+                {
+                  "key": "state",
+                  "value": "test_state"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GitHub OAuth Callback",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/oauth/github/callback?code=test_code&state=test_state",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "oauth", "github", "callback"],
+              "query": [
+                {
+                  "key": "code",
+                  "value": "test_code"
+                },
+                {
+                  "key": "state",
+                  "value": "test_state"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Servers",
+      "item": [
+        {
+          "name": "Create Server",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My Test Server\",\n  \"image\": \"nginx:alpine\",\n  \"cpu_limit\": 0.5,\n  \"cores\": 1,\n  \"ram_gib\": 1.0,\n  \"disk_gib\": 10.0\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/servers",
+              "host": ["{{base_url}}"],
+              "path": ["servers"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('server_id', response.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Servers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/servers",
+              "host": ["{{base_url}}"],
+              "path": ["servers"]
+            }
+          }
+        },
+        {
+          "name": "Get Server",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/servers/{{server_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["servers", "{{server_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Start Server",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/servers/{{server_id}}/start",
+              "host": ["{{base_url}}"],
+              "path": ["servers", "{{server_id}}", "start"]
+            }
+          }
+        },
+        {
+          "name": "Stop Server",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/servers/{{server_id}}/stop",
+              "host": ["{{base_url}}"],
+              "path": ["servers", "{{server_id}}", "stop"]
+            }
+          }
+        },
+        {
+          "name": "Update Server",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Server Name\",\n  \"cpu_limit\": 1.0,\n  \"ram_gib\": 2.0\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/servers/{{server_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["servers", "{{server_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Server",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/servers/{{server_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["servers", "{{server_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Usage",
+      "item": [
+        {
+          "name": "Get Server Usage",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/servers/{{server_id}}/usage?from=2024-01-01T00:00:00Z&to=2024-01-31T23:59:59Z&interval=1h",
+              "host": ["{{base_url}}"],
+              "path": ["servers", "{{server_id}}", "usage"],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2024-01-01T00:00:00Z"
+                },
+                {
+                  "key": "to",
+                  "value": "2024-01-31T23:59:59Z"
+                },
+                {
+                  "key": "interval",
+                  "value": "1h"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Server Usage - 5min intervals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/servers/{{server_id}}/usage?interval=5m",
+              "host": ["{{base_url}}"],
+              "path": ["servers", "{{server_id}}", "usage"],
+              "query": [
+                {
+                  "key": "interval",
+                  "value": "5m"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Server Usage - Daily",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/servers/{{server_id}}/usage?interval=1d",
+              "host": ["{{base_url}}"],
+              "path": ["servers", "{{server_id}}", "usage"],
+              "query": [
+                {
+                  "key": "interval",
+                  "value": "1d"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Billing",
+      "item": [
+        {
+          "name": "Get Billing Rates",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/billing/rates",
+              "host": ["{{base_url}}"],
+              "path": ["billing", "rates"]
+            }
+          }
+        },
+        {
+          "name": "Generate Invoice",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"period_start\": \"2024-01-01T00:00:00Z\",\n  \"period_end\": \"2024-01-31T23:59:59Z\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/billing/invoices/generate",
+              "host": ["{{base_url}}"],
+              "path": ["billing", "invoices", "generate"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('invoice_id', response.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Invoices",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/billing/invoices",
+              "host": ["{{base_url}}"],
+              "path": ["billing", "invoices"]
+            }
+          }
+        },
+        {
+          "name": "Get Invoice",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/billing/invoices/{{invoice_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["billing", "invoices", "{{invoice_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Pay Invoice",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"method\": \"credit_card\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/billing/invoices/{{invoice_id}}/pay",
+              "host": ["{{base_url}}"],
+              "path": ["billing", "invoices", "{{invoice_id}}", "pay"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Emails",
+      "item": [
+        {
+          "name": "Trigger Weekly Email",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/emails/weekly/trigger",
+              "host": ["{{base_url}}"],
+              "path": ["emails", "weekly", "trigger"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "System",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "Root Endpoint",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": ["{{base_url}}"],
+              "path": [""]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

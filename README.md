@@ -27,7 +27,7 @@ built with Python FastAPI, MongoDB, Redis, NATS, and Docker.
 ### Step 1: Get the Code
 ```bash
 git clone <your-repository-url>
-cd Autobit-Internal
+cd Autobit-Assignment
 ```
 
 ### Step 2: Set Up Environment
